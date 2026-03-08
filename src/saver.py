@@ -12,7 +12,9 @@ class DataSaver:
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
 
-    def save_to_csv(self, products: List[Product], filename: str = "products.csv") -> str:
+    def save_to_csv(
+        self, products: List[Product], filename: str = "products.csv"
+    ) -> str:
         """
         Сохраняет список продуктов в CSV файл.
         :return: Полный путь к сохраненному файлу.
@@ -23,10 +25,18 @@ class DataSaver:
             print("Нет данных для сохранения.")
             return filepath
 
-        fieldnames = ['url', 'name', 'price', 'rating', 'description', 'instruction', 'country']
+        fieldnames = [
+            "url",
+            "name",
+            "price",
+            "rating",
+            "description",
+            "instruction",
+            "country",
+        ]
 
         try:
-            with open(filepath, 'w', newline='', encoding='utf-8-sig') as csvfile:
+            with open(filepath, "w", newline="", encoding="utf-8-sig") as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                 writer.writeheader()
                 for product in products:

@@ -39,7 +39,7 @@ class PerfumeScraper:
         possible_paths = [
             "/usr/bin/firefox",
             "/snap/bin/firefox",
-            shutil.which("firefox")
+            shutil.which("firefox"),
         ]
         for path in possible_paths:
             if path and os.path.exists(path):
@@ -57,8 +57,10 @@ class PerfumeScraper:
         options.add_argument(temp_profile_dir)
 
         # Настройки
-        options.set_preference("general.useragent.override",
-                               "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0")
+        options.set_preference(
+            "general.useragent.override",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0",
+        )
         options.set_preference("javascript.enabled", True)
         # Отключаем уведомления, чтобы не мешали
         options.set_preference("dom.webnotifications.enabled", False)
@@ -88,7 +90,9 @@ class PerfumeScraper:
             # Попробуем универсальный селектор: ссылка, содержащая '/product/'
             try:
                 WebDriverWait(self.driver, 20).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, "a[href*='/product/']"))
+                    EC.presence_of_element_located(
+                        (By.CSS_SELECTOR, "a[href*='/product/']")
+                    )
                 )
                 print("   ✅ Товары найдены на странице.")
             except TimeoutException:
@@ -128,24 +132,28 @@ class PerfumeScraper:
             return None
 
         # 1. Название (h1)
-        name_pattern = r'<h1[^>]*>(.*?)</h1>'
+        name_pattern = r"<h1[^>]*>(.*?)</h1>"
         name_match = re.search(name_pattern, html, re.DOTALL | re.IGNORECASE)
         name = Product.clean_text(name_match.group(1)) if name_match else "Не указано"
 
         # 2. Цена (цифры + руб/₽)
-        price_pattern = r'(\d[\d\s]*\.?\d*)\s*(?:руб|₽|RUB)'
+        price_pattern = r"(\d[\d\s]*\.?\d*)\s*(?:руб|₽|RUB)"
         price_match = re.search(price_pattern, html, re.IGNORECASE)
         price = price_match.group(0) if price_match else "0 ₽"
 
         # 3. Рейтинг
         rating_match = re.search(r'"ratingValue"\s*:\s*"(\d\.?\d*)"', html)
         if not rating_match:
-            rating_match = re.search(r'(\d\.?\d*)\s*(?:из|of)\s*\d', html, re.IGNORECASE)
+            rating_match = re.search(
+                r"(\d\.?\d*)\s*(?:из|of)\s*\d", html, re.IGNORECASE
+            )
         rating = rating_match.group(1) if rating_match else None
 
         # 4. Описание
         # Ищем блок после слова "Описание"
-        desc_pattern = r'(?:Описание|Description)[^>]*?</div>\s*<div[^>]*>([\s\S]*?)</div>'
+        desc_pattern = (
+            r"(?:Описание|Description)[^>]*?</div>\s*<div[^>]*>([\s\S]*?)</div>"
+        )
         desc_match = re.search(desc_pattern, html, re.IGNORECASE)
         description = Product.clean_text(desc_match.group(1)) if desc_match else None
 
@@ -155,12 +163,12 @@ class PerfumeScraper:
                 description = Product.clean_text(meta_desc.group(1))
 
         # 5. Инструкция (может отсутствовать)
-        instr_pattern = r'(?:Инструкция|Способ применения|Применение)[^>]*?</div>\s*<div[^>]*>([\s\S]*?)</div>'
+        instr_pattern = r"(?:Инструкция|Способ применения|Применение)[^>]*?</div>\s*<div[^>]*>([\s\S]*?)</div>"
         instr_match = re.search(instr_pattern, html, re.IGNORECASE)
         instruction = Product.clean_text(instr_match.group(1)) if instr_match else None
 
         # 6. Страна
-        country_pattern = r'(?:Страна|Производитель)[^:]*:\s*([^<]+)'
+        country_pattern = r"(?:Страна|Производитель)[^:]*:\s*([^<]+)"
         country_match = re.search(country_pattern, html, re.IGNORECASE)
         country = Product.clean_text(country_match.group(1)) if country_match else None
 
@@ -171,7 +179,7 @@ class PerfumeScraper:
             rating=rating,
             description=description,
             instruction=instruction,
-            country=country
+            country=country,
         )
 
     def scrape(self, max_items: int = 10) -> List[Product]:
