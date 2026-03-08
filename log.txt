@@ -1,0 +1,100 @@
+(.venv) ubuvan@ubuvan:~/Diplom/BB1$ pytest --cov=src --cov-report=term-missing
+========================= test session starts =========================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /home/ubuvan/Diplom/BB1/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/ubuvan/Diplom/BB1
+configfile: pytest.ini
+testpaths: tests
+plugins: cov-7.0.0
+collected 16 items
+
+tests/test_main.py::test_main_success PASSED                    [  6%]
+tests/test_main.py::test_main_no_products PASSED                [ 12%]
+tests/test_models.py::TestProduct::test_create_product PASSED   [ 18%]
+tests/test_models.py::TestProduct::test_create_product_with_defaults PASSED [ 25%]
+tests/test_models.py::TestProduct::test_clean_text PASSED       [ 31%]
+tests/test_models.py::TestProduct::test_clean_text_none PASSED  [ 37%]
+tests/test_models.py::TestProduct::test_to_dict PASSED          [ 43%]
+tests/test_saver.py::TestDataSaver::test_save_to_csv PASSED     [ 50%]
+tests/test_saver.py::TestDataSaver::test_save_empty_list FAILED [ 56%]
+tests/test_scraper.py::TestPerfumeScraper::test_extract_product_links PASSED [ 62%]
+tests/test_scraper.py::TestPerfumeScraper::test_parse_product_page_full PASSED [ 68%]
+tests/test_scraper.py::TestPerfumeScraper::test_parse_product_page_missing_data PASSED [ 75%]
+tests/test_scraper.py::TestPerfumeScraper::test_fetch_html_mock PASSED [ 81%]
+tests/test_scraper.py::TestPerfumeScraper::test_scrape_no_links PASSED [ 87%]
+tests/test_scraper.py::TestPerfumeScraper::test_scrape_successful_flow FAILED [ 93%]
+tests/test_scraper.py::TestPerfumeScraper::test_fetch_html_exception PASSED [100%]
+ERROR: Coverage failure: total of 72 is less than fail-under=75
+
+
+============================== FAILURES ===============================
+_________________ TestDataSaver.test_save_empty_list __________________
+
+self = <tests.test_saver.TestDataSaver object at 0x798a81ca28a0>
+temp_dir = '/tmp/tmpqzzwicwe'
+capsys = <_pytest.capture.CaptureFixture object at 0x798a81b22120>
+
+    def test_save_empty_list(self, temp_dir, capsys):
+        """Проверка сохранения пустого списка."""
+        saver = DataSaver(output_dir=temp_dir)
+        filepath = saver.save_to_csv([], filename="empty.csv")
+
+        captured = capsys.readouterr()
+        assert "Нет данных" in captured.out
+>       assert os.path.exists(filepath)  # Файл должен существовать (с заголовком)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: assert False
+E        +  where False = <function exists at 0x798a83ff36a0>('/tmp/tmpqzzwicwe/empty.csv')
+E        +    where <function exists at 0x798a83ff36a0> = <module 'posixpath' (frozen)>.exists
+E        +      where <module 'posixpath' (frozen)> = os.path
+
+tests/test_saver.py:50: AssertionError
+___________ TestPerfumeScraper.test_scrape_successful_flow ____________
+
+self = <tests.test_scraper.TestPerfumeScraper object at 0x798a81ca3fe0>
+scraper = <src.scraper.PerfumeScraper object at 0x798a81b63a40>
+
+    def test_scrape_successful_flow(self, scraper):
+        """Проверка успешного потока сбора данных."""
+        # Мокаем ответы для категории и товара
+        category_html = '<html><a href="/product/test-1">Link</a></html>'
+        product_html = "<html><h1>Test Product</h1><div>1000 ₽</div></html>"
+
+        call_count = 0
+
+        def mock_fetch(url):
+            nonlocal call_count
+            call_count += 1
+            return category_html if call_count == 1 else product_html
+
+        scraper._fetch_html = mock_fetch
+
+        products = scraper.scrape(max_items=1)
+
+>       assert len(products) == 1
+E       assert 0 == 1
+E        +  where 0 = len([])
+
+tests/test_scraper.py:100: AssertionError
+------------------------ Captured stdout call -------------------------
+🚀 Старт скрапинга: https://randewoo.ru/category/parfyumeriya
+🔗 Найдено ссылок: 0
+💾 HTML сохранен в debug_randewoo.html
+=========================== tests coverage ============================
+___________ coverage: platform linux, python 3.12.3-final-0 ___________
+
+Name              Stmts   Miss  Cover   Missing
+-----------------------------------------------
+src/__init__.py       0      0   100%
+src/main.py          14      1    93%   27
+src/models.py        20      0   100%
+src/saver.py         26      4    85%   13, 47-49
+src/scraper.py      144     53    63%   34-36, 39-47, 50-78, 82, 98-99, 108-109, 132, 163, 187-188, 196-198, 211-228
+-----------------------------------------------
+TOTAL               204     58    72%
+FAIL Required test coverage of 75% not reached. Total coverage: 71.57%
+======================= short test summary info =======================
+FAILED tests/test_saver.py::TestDataSaver::test_save_empty_list - AssertionError: assert False
+FAILED tests/test_scraper.py::TestPerfumeScraper::test_scrape_successful_flow - assert 0 == 1
+==================== 2 failed, 14 passed in 4.00s =====================
+(.venv) ubuvan@ubuvan:~/Diplom/BB1$
